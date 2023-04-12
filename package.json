@@ -1,0 +1,49 @@
+{
+  "name": "y-storage",
+  "version": "0.0.1",
+  "description": "一个用于管理本地storage存储的工具库",
+  "main": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "browser": "dist/index.js",
+  "scripts": {
+    "build": "rollup -c --bundleConfigAsCjs",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "localStorage",
+    "sessionStorage"
+  ],
+  "lint-staged": {
+    "*.{js,jsx,vue}": "eslint --fix",
+    "*.{html,vue,css,scss}": "stylelint --fix"
+  },
+  "author": "liuyun",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/preset-env": "^7.21.4",
+    "@commitlint/cli": "^17.5.1",
+    "@commitlint/config-conventional": "^17.4.4",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "24.1.0-0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.1",
+    "prettier": "^2.8.7",
+    "rollup": "^3.20.2",
+    "typescript": "^5.0.3"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "pnpm": ">=7.0.0"
+  },
+  "packageManager": "pnpm@7.0.0"
+}
