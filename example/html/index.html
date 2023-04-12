@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <script src="/dist/index.js"></script>
+    <style>
+      div {
+        margin: 10px;
+      }
+      label {
+        display: inline-block;
+        width: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <label for="target">存储的位置</label>
+      <select name="target" id="target">
+        <option value="local">localStorage</option>
+        <option value="session">sessionStorage</option>
+      </select>
+    </div>
+    <div><label for="namespace">命名空间</label><input type="text" id="namespace" /></div>
+    <div><label for="key">存储的key</label><input type="text" id="key" /></div>
+    <div><label for="value">存储的值</label><input type="text" id="value" /></div>
+    <div><label for="timeout">存储时限</label><input type="number" id="timeout" /></div>
+    <div><label for="safety">安全检查</label><input type="checkbox" id="safety" /></div>
+    <div><label for="once">只可取值一次</label><input type="checkbox" id="once" /></div>
+    <button onclick="init()">初始化</button>
+    <button onclick="save()">保存</button>
+    <button onclick="getValue()">取值</button>
+    <button onclick="delValue()">删除</button>
+    <button onclick="clear()">清空</button>
+    <div><label for="listen">是否监听</label><input type="checkbox" id="listen" onchange="triggerListener()" /></div>
+    <script>
+      let yStorage;
+      // 初始化一个YStorage实例
+      function init() {
+        const target = document.getElementById("target").value;
+        const namespace = document.getElementById("namespace").value;
+        if (!namespace) {
+          alert("请输入存储空间名称");
+        } else {
+          yStorage = new YStorage({
+            namespace,
+            target,
+          });
+          console.log(yStorage);
+        }
+      }
+      // 点击保存
+      function save() {
+        // console.log("save");
+        const target = document.getElementById("target").value;
+        // const namespace = document.getElementById("namespace").value;
+        const key = document.getElementById("key").value;
+        const value = document.getElementById("value").value;
+        const timeout = document.getElementById("timeout").value;
+        const safety = document.getElementById("safety").checked;
+        const once = document.getElementById("once").checked;
+        yStorage.setItem(key, value, {
+          timeout,
+          safety,
+          once,
+          target,
+        });
+      }
+      // 是否监听事件
+      function triggerListener(e) {
+        // console.log("triggerListener",e);
+        const listen = document.getElementById("listen").checked;
+        if(listen) {
+          window.addEventListener('yStorage',yStorageHandler)
+        } else {
+          window.removeEventListener('yStorage',yStorageHandler)
+        }
+      }
+
+      function yStorageHandler(e) {
+        console.log('yStorage',e);
+      }
+    </script>
+  </body>
+</html>
