@@ -1,5 +1,10 @@
 module.exports = {
   "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
   "parser": "@typescript-eslint/parser",
   parserOptions: {
     sourceType: 'module',
@@ -10,19 +15,6 @@ module.exports = {
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
   ],
-  "env": {
-    "browser": true,
-    "node": true,
-    "commonjs": true,
-    "es6": true
-  },
   "rules": {
-    // "no-console": "warn",
-    // "@typescript-eslint/array-type": [
-    //   "error",
-    //   {
-    //     "default": "generic"
-    //   }
-    // ]
   }
 }

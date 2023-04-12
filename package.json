@@ -7,36 +7,41 @@
   "type": "module",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
+  "unpkg": "dist/index.js",
+  "jsdelivr": "dist/index.js",
+  "browser": "dist/index.js",
   "files": [
     "dist"
   ],
-  "browser": "dist/index.js",
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
+    "changelog": "conventional-changelog -p custom-config -i CHANGELOG.md -s -n changelog-option.cjs && git add CHANGELOG.md",
+    "lint": "eslint src/**/*.ts",
     "prepare": "husky install"
   },
   "keywords": [
     "localStorage",
     "sessionStorage"
   ],
-  "lint-staged": {
-    "*.{js,jsx,vue}": "eslint --fix",
-    "*.{html,vue,css,scss}": "stylelint --fix"
-  },
   "author": "liuyun",
   "license": "MIT",
   "devDependencies": {
     "@babel/preset-env": "^7.21.4",
-    "@commitlint/cli": "^17.5.1",
-    "@commitlint/config-conventional": "^17.4.4",
+    "@commitlint/cli": "^17.6.1",
+    "@commitlint/config-conventional": "^17.6.1",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-commonjs": "24.1.0-0",
+    "@rollup/plugin-eslint": "^9.0.3",
+    "@rollup/plugin-terser": "^0.4.1",
     "@rollup/plugin-typescript": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
+    "compare-func": "^2.0.0",
+    "conventional-changelog": "^3.1.25",
+    "conventional-changelog-cli": "^2.2.2",
+    "conventional-changelog-custom-config": "^0.3.1",
     "eslint": "^8.37.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
     "rollup": "^3.20.2",
     "typescript": "^5.0.3"
@@ -45,5 +50,9 @@
     "node": ">=14.0.0",
     "pnpm": ">=7.0.0"
   },
-  "packageManager": "pnpm@7.0.0"
+  "packageManager": "pnpm@7.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yun8711/y-storage.git"
+  }
 }
