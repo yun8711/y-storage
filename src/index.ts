@@ -1,18 +1,17 @@
 type TargetType = "local" | "session";
 
-// 自定义浏览器事件的detail数据类型
-interface YStorageEventDetail {
+// 回调事件的detail数据类型
+interface callbackArg {
   func: string | null;
-  target: TargetType|TargetType[];
+  target: TargetType;
   namespace: string | null;
-  key?: string|null;
+  key?: string | null;
   value?: unknown;
   once?: boolean | null;
-  timeout?: number | null;
+  expires?: number | null;
   safety?: boolean | null;
-  // format:boolean|null;
+  override?: boolean | null;
 }
-
 
 // 在命名空间内存储的数据格式
 interface cachedDataInterface {
@@ -21,178 +20,229 @@ interface cachedDataInterface {
 
 interface setItmOptions {
   value: unknown;
-  timeout: null | number;
-  safety: boolean;
+  expires: null | number;
+  override: boolean;
   once: boolean;
   [key: string]: unknown;
 }
 
 // setItem 方法附加参数类型定义
 interface setItmArgs {
-  target: TargetType;
-  timeout: null | number;
-  safety: boolean;
+  expires: number;
   once: boolean;
+  override: boolean;
 }
 
-// 自定义浏览器事件的detail数据类型
-function dispatchEvent(detail: YStorageEventDetail) {
-  const event = new CustomEvent("yStorage", {
-    detail: Object.assign(
-      {},
-      {
-        once: null,
-        timeout: null,
-        func: null,
-        safety: null,
-      },
-      detail,
-    ),
-  });
-  window.dispatchEvent(event);
+/**
+ * @description 获取存储对象
+ */
+function getStorage(target: TargetType) {
+  const storage = window?.[((target || "local") + "Storage") as keyof Window];
+  if (storage === undefined) {
+    // 抛出异常：当前环境不支持
+    throw new Error(`[YStorage] The current environment does not support ${target}Storage`);
+  }
+  return storage;
 }
 
+interface constructorOptions {
+  namespace: string;
+  override?: boolean;
+  target?: TargetType;
+  callback?: ((detail: callbackArg) => void) | undefined;
+}
 
 /**
  * @class YStorage
  * @description 声明一个类，用于存储数据，同时提供事件监听
  */
 class YStorage {
-  namespace: string;
-  target: TargetType;
+  readonly prefix: string = "YStorage_";
+  readonly namespace: string;
+  readonly target: TargetType;
+  private readonly storage: Storage;
+  callback: ((detail: callbackArg) => void) | undefined;
 
-  constructor(arg: { namespace: string; target: TargetType }) {
-    this.namespace = arg.namespace;
-    this.target = arg.target || "session";
-    this._init(this.target);
+  // 实例初始化
+  constructor(options: constructorOptions) {
+    this.target = options.target ?? "local";
+    this.storage = getStorage(this.target);
+    this.namespace = this.prefix + options.namespace;
+    options.override = options.override ?? false;
+    if (options.callback) {
+      this.callback = options.callback;
+    }
+    this._initSpace(options);
   }
 
   /**
    * @description 初始化存储空间
-   * @param target
    * @private
+   * @param {constructorOptions} options
    */
-  private _init(target: TargetType) {
-    const storageName: TargetType = target || this.target;
-    const storage: Storage | undefined = window?.[((storageName || "session") + "Storage") as keyof Window];
-    if (storage !== undefined) {
-      const cachedData = {};
-      storage.setItem(this.namespace, JSON.stringify(cachedData));
+  private _initSpace(options: constructorOptions): void {
+    try {
+      if (!this.storage.getItem(options.namespace) || options.override === true) {
+        this.storage.setItem(options.namespace, JSON.stringify({}));
+      }
+      this.callback &&
+        this.callback({
+          func: "init",
+          namespace: this.namespace,
+          target: this.target,
+        });
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] Initialization failed ${(e as Error)?.message}`);
     }
-  }
-
-  // 根据target获取storage对象
-  private _getStorage(target?: TargetType): Storage | undefined {
-    const storageName: TargetType = target || this.target;
-    return window?.[((storageName || "session") + "Storage") as keyof Window];
   }
 
   /**
-   * @description 设置属性值
+   * @description 是否有某个key，只判断key，不判断值
+   * @param {string} key
    */
-  public setItem(
-    key: string,
-    value: unknown,
-    options: setItmArgs = {
-      timeout: null,
-      safety: false,
-      once: false,
-      target: this.target,
-    },
-  ) {
-    const storage = this._getStorage(options?.target);
-    let cachedDataStr = "";
-    if (storage !== undefined) cachedDataStr = storage.getItem(this.namespace) || "";
-    // 序列化数据
-    const cachedData: cachedDataInterface = JSON.parse(cachedDataStr);
-    // key安全性检查，如果key已存在，则不能赋值
-    if (options?.safety && key in cachedData) {
-      throw new Error(`[YStorage] key : ${key} is exist and safety is true`);
+  has(key: string) {
+    try {
+      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
+      return Object.hasOwn(cachedData, key);
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] read fail ${(e as Error)?.message}`);
     }
+  }
 
-    cachedData[key] = {
-      value,
-      timeout: options.timeout !== null ? new Date().getTime() + options.timeout : null,
-      once: options.once,
-      safety: options.safety,
-    };
-    storage?.setItem(this.namespace, JSON.stringify(cachedData));
-    dispatchEvent({
-      func: "setItem",
-      // target: options.target,
-      namespace: this.namespace,
-      key,
-      value,
-      ...options,
-    });
+  /**
+   * @description 删除存储空间
+   */
+  destroy() {
+    try {
+      this.storage.removeItem(this.namespace);
+      this.callback &&
+        this.callback({
+          func: "destroy",
+          namespace: this.namespace,
+          target: this.target,
+        });
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] destroy fail ${(e as Error)?.message}`);
+    }
+  }
+
+  /**
+   * @description 向存储空间内添加数据
+   * @param {string}  key 数据的key
+   * @param {any} value 数组值
+   * @param {object} options 额外参数
+   */
+  setItem(key: string, value: unknown, options?: setItmArgs) {
+    try {
+      // 如果没有传入namespace，且
+      const merged: setItmArgs = {
+        expires: options?.expires ?? 0,
+        once: options?.once ?? false,
+        override: options?.override ?? false,
+      };
+      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
+      // key安全性检查，如果key已存在，则不能赋值，扫除异常：
+      if (cachedData[key] && !merged.override) {
+        throw new Error(`[YStorage] The key ${key} already exists`);
+      }
+
+      cachedData[key] = {
+        value: value ?? "",
+        expires: merged.expires !== 0 ? new Date().getTime() + merged.expires : 0,
+        once: merged.once,
+        override: merged.override,
+      };
+      this.storage.setItem(this.namespace, JSON.stringify(cachedData));
+      this.callback &&
+        this.callback({
+          func: "setItem",
+          namespace: this.namespace,
+          target: this.target,
+          key,
+          value,
+          ...merged,
+        });
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] setItem failed ${(e as Error)?.message}`);
+    }
   }
 
   /**
    * @description 删除属性
    * @param key {string} 属性名
-   * @param target {TargetType} 存储位置，session/local
    */
-  public removeItem(key: string, target: TargetType) {
-    const storage = this._getStorage(target);
-    let cachedDataStr = "";
-    if (storage !== undefined) cachedDataStr = storage.getItem(this.namespace) || "";
-    const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
-    delete cachedData[key];
-    storage?.setItem(this.namespace, JSON.stringify(cachedData));
-    dispatchEvent({
-      func: "removeItem",
-      target: target,
-      namespace: this.namespace,
-      key,
-    });
+  removeItem(key: string) {
+    try {
+      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
+      delete cachedData[key];
+      this.storage?.setItem(this.namespace, JSON.stringify(cachedData));
+      this.callback &&
+        this.callback({
+          func: "removeItem",
+          target: this.target,
+          namespace: this.namespace,
+          key,
+        });
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] removeItem failed ${(e as Error)?.message}`);
+    }
   }
 
   /**
    * @description 获取属性值
    * @param key {string} 属性名
-   * @param target {TargetType} 存储位置，session/local
    */
-  public getItem(key: string, target: TargetType) {
-    let result: unknown = null;
-    const storage = this._getStorage(target);
-    let cachedDataStr = "";
-    if (storage !== undefined) cachedDataStr = storage.getItem(this.namespace) || "";
-    const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
-    const item = cachedData[key];
-    if (item) {
-      // 如果设置了过期时间，且已经过期，则删除该属性，返回null
-      if (item.timeout && item.timeout < new Date().getTime()) {
-        this.removeItem(key, target);
-        result = null;
-      } else {
-        result = item.value;
+  getItem(key: string) {
+    try {
+      let result: unknown = null;
+      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
+      const item = cachedData[key];
+      if (item) {
+        // 如果设置了过期时间，且已经过期，则删除该属性，返回null
+        if (item.expires && item.expires < new Date().getTime()) {
+          this.removeItem(key);
+        } else {
+          result = JSON.parse(typeof item.value === "string" ? item.value : "");
+        }
+        // 如果设置了once，则在取值后删除该属性
+        if (item.once) {
+          this.removeItem(key);
+        }
       }
-      // 如果设置了once，则在取值后删除该属性
-      if (item.once) {
-        this.removeItem(key, target);
-      }
+      this.callback &&
+        this.callback({
+          func: "getItem",
+          target: this.target,
+          namespace: this.namespace,
+          key,
+          value: result,
+        });
+      return result;
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] getItem failed ${(e as Error)?.message}`);
     }
-    return result;
   }
 
   /**
    * @description 清空存储空间
-   * @param [target] {TargetType | undefined} 存储位置，session/local/undefined
    */
-  public clear(target?: TargetType) {
-    if (target === undefined || target === "session") {
-      window.sessionStorage.setItem(this.namespace, "");
+  clear() {
+    try {
+      this.storage.setItem(this.namespace, "");
+      this.callback &&
+        this.callback({
+          func: "clear",
+          target: this.target,
+          namespace: this.namespace,
+        });
+    } catch (e: unknown) {
+      throw new Error(`[YStorage] clear failed ${(e as Error)?.message}`);
     }
-    if (target === undefined || target === "local") {
-      window.localStorage.setItem(this.namespace, "");
-    }
-    dispatchEvent({
-      func: "clear",
-      target: target === undefined ? ["local", "session"] : target,
-      namespace: this.namespace,
-    });
   }
 }
 
 export default YStorage;
-

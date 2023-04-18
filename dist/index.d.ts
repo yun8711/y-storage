@@ -1,48 +1,39 @@
 type TargetType = "local" | "session";
-interface setItmArgs {
+interface callbackArg {
+    func: string | null;
     target: TargetType;
-    timeout: null | number;
-    safety: boolean;
-    once: boolean;
+    namespace: string | null;
+    key?: string | null;
+    value?: unknown;
+    once?: boolean | null;
+    expires?: number | null;
+    safety?: boolean | null;
+    override?: boolean | null;
 }
-/**
- * @class YStorage
- * @description 声明一个类，用于存储数据，同时提供事件监听
- */
-declare class YStorage {
+interface setItmArgs {
+    expires: number;
+    once: boolean;
+    override: boolean;
+}
+interface constructorOptions {
     namespace: string;
-    target: TargetType;
-    constructor(arg: {
-        namespace: string;
-        target: TargetType;
-    });
-    /**
-     * @description 初始化存储空间
-     * @param target
-     * @private
-     */
-    private _init;
-    private _getStorage;
-    /**
-     * @description 设置属性值
-     */
+    override?: boolean;
+    target?: TargetType;
+    callback?: ((detail: callbackArg) => void) | undefined;
+}
+declare class YStorage {
+    readonly prefix: string;
+    readonly namespace: string;
+    readonly target: TargetType;
+    private readonly storage;
+    callback: ((detail: callbackArg) => void) | undefined;
+    constructor(options: constructorOptions);
+    private _initSpace;
+    has(key: string): boolean;
+    destroy(): void;
     setItem(key: string, value: unknown, options?: setItmArgs): void;
-    /**
-     * @description 删除属性
-     * @param key {string} 属性名
-     * @param target {TargetType} 存储位置，session/local
-     */
-    removeItem(key: string, target: TargetType): void;
-    /**
-     * @description 获取属性值
-     * @param key {string} 属性名
-     * @param target {TargetType} 存储位置，session/local
-     */
-    getItem(key: string, target: TargetType): unknown;
-    /**
-     * @description 清空存储空间
-     * @param [target] {TargetType | undefined} 存储位置，session/local/undefined
-     */
-    clear(target?: TargetType): void;
+    removeItem(key: string): void;
+    getItem(key: string): unknown;
+    clear(): void;
 }
 export default YStorage;
