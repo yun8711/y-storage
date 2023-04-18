@@ -1,6 +1,6 @@
 {
   "name": "y-storage",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "一个用于管理本地storage存储的工具库",
   "main": "dist/index.esm.js",
   "module": "dist/index.esm.js",

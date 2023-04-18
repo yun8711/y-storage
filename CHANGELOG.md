@@ -1,3 +1,12 @@
+## [0.0.2](https://github.com/yun8711/y-storage/compare/0.0.1...0.0.2) (2023-04-18)
+
+
+### ✨ Features | 新功能
+
+* 优化功能，重构部分方法 ([d7814e1](https://github.com/yun8711/y-storage/commit/d7814e1))
+
+
+
 # Changelog
 
 ## [0.0.1] - 2023-04-12
