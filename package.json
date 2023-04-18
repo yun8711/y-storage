@@ -16,6 +16,7 @@
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
     "changelog": "conventional-changelog -p custom-config -i CHANGELOG.md -s -n changelog-option.cjs && git add CHANGELOG.md",
+    "push": "git push origin:github master && git push origin:gitee master",
     "lint": "eslint src/**/*.ts",
     "prepare": "husky install"
   },
