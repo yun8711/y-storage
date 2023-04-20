@@ -1,5 +1,5 @@
 {
-  "name": "vue",
+  "name": "vue-example",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,11 @@
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "vue-template-compiler": "^2.6.14"
+    "vue-template-compiler": "^2.6.14",
+    "y-storage": "workspace:^0.0.4"
+  },
+  "engines": {
+    "pnpm": ">=7.0.0"
   },
   "browserslist": [
     "> 1%",

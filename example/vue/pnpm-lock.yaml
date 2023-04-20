@@ -6,6 +6,7 @@ specifiers:
   core-js: ^3.8.3
   vue: ^2.6.14
   vue-template-compiler: ^2.6.14
+  y-storage: workspace:^0.0.4
 
 dependencies:
   core-js: 3.30.0
@@ -15,6 +16,7 @@ devDependencies:
   '@vue/cli-plugin-babel': 5.0.8_oimaos2g5cm3arooezizr2ae5u
   '@vue/cli-service': 5.0.8_yqhawued3kxu3d7tcvxdlafm2m
   vue-template-compiler: 2.7.14
+  y-storage: link:../..
 
 packages:
 
