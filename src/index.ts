@@ -59,15 +59,15 @@ interface constructorOptions {
 export class YStorage {
   readonly prefix: string = "YStorage_";
   readonly namespace: string;
+  readonly storageKey: string;
   readonly target: TargetType;
-  private readonly storage: Storage;
   callback: ((detail: callbackArg) => void) | undefined;
 
   // 实例初始化
   constructor(options: constructorOptions) {
     this.target = options.target ?? "local";
-    this.storage = getStorage(this.target);
-    this.namespace = this.prefix + options.namespace;
+    this.namespace = options.namespace;
+    this.storageKey=this.prefix + options.namespace;
     options.override = options.override ?? false;
     if (options.callback) {
       this.callback = options.callback;
@@ -82,8 +82,9 @@ export class YStorage {
    */
   private _initSpace(options: constructorOptions): void {
     try {
-      if (!this.storage.getItem(this.namespace) || options.override === true) {
-        this.storage.setItem(this.namespace, JSON.stringify({}));
+      const storage=getStorage(this.target);
+      if (!storage.getItem(this.storageKey) || options.override === true) {
+        storage.setItem(this.storageKey, JSON.stringify({}));
       }
       this.callback &&
         this.callback({
@@ -102,7 +103,8 @@ export class YStorage {
    */
   has(key: string) {
     try {
-      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const storage=getStorage(this.target);
+      const cachedDataStr = storage.getItem(this.storageKey) || "";
       const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
       return Object.hasOwn(cachedData, key);
     } catch (e: unknown) {
@@ -115,7 +117,8 @@ export class YStorage {
    */
   destroy() {
     try {
-      this.storage.removeItem(this.namespace);
+      const storage=getStorage(this.target);
+      storage.removeItem(this.storageKey);
       this.callback &&
         this.callback({
           func: "destroy",
@@ -135,13 +138,14 @@ export class YStorage {
    */
   setItem(key: string, value: unknown, options?: setItmArgs) {
     try {
+      const storage=getStorage(this.target);
       // 如果没有传入namespace，且
       const merged: setItmArgs = {
         expires: options?.expires ?? 0,
         once: options?.once ?? false,
-        override: options?.override ?? false,
+        override: options?.override ?? true,
       };
-      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedDataStr = storage.getItem(this.storageKey) || "";
       const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
       // key安全性检查，如果key已存在，则不能赋值，扫除异常：
       if (cachedData[key] && !merged.override) {
@@ -154,7 +158,7 @@ export class YStorage {
         once: merged.once,
         override: merged.override,
       };
-      this.storage.setItem(this.namespace, JSON.stringify(cachedData));
+      storage.setItem(this.storageKey, JSON.stringify(cachedData));
       this.callback &&
         this.callback({
           func: "setItem",
@@ -175,10 +179,11 @@ export class YStorage {
    */
   removeItem(key: string) {
     try {
-      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const storage=getStorage(this.target);
+      const cachedDataStr = storage.getItem(this.storageKey) || "";
       const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
       delete cachedData[key];
-      this.storage?.setItem(this.namespace, JSON.stringify(cachedData));
+      storage?.setItem(this.storageKey, JSON.stringify(cachedData));
       this.callback &&
         this.callback({
           func: "removeItem",
@@ -197,8 +202,9 @@ export class YStorage {
    */
   getItem(key: string) {
     try {
+      const storage=getStorage(this.target);
       let result: unknown = null;
-      const cachedDataStr = this.storage.getItem(this.namespace) || "";
+      const cachedDataStr = storage.getItem(this.storageKey) || "";
       const cachedData: cachedDataInterface = cachedDataStr ? JSON.parse(cachedDataStr) : {};
       const item = cachedData[key];
       if (item) {
@@ -206,7 +212,7 @@ export class YStorage {
         if (item.expires && item.expires < new Date().getTime()) {
           this.removeItem(key);
         } else {
-          result = JSON.parse(typeof item.value === "string" ? item.value : "");
+          result = item.value;
         }
         // 如果设置了once，则在取值后删除该属性
         if (item.once) {
@@ -232,7 +238,8 @@ export class YStorage {
    */
   clear() {
     try {
-      this.storage.setItem(this.namespace, "");
+      const storage=getStorage(this.target);
+      storage.setItem(this.storageKey, JSON.stringify({}));
       this.callback &&
         this.callback({
           func: "clear",
