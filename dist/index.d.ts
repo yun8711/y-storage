@@ -24,8 +24,8 @@ interface constructorOptions {
 export declare class YStorage {
     readonly prefix: string;
     readonly namespace: string;
+    readonly storageKey: string;
     readonly target: TargetType;
-    private readonly storage;
     callback: ((detail: callbackArg) => void) | undefined;
     constructor(options: constructorOptions);
     private _initSpace;
