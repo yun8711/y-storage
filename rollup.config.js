@@ -8,10 +8,10 @@ export default defineConfig({
   input: "src/index.ts", // 打包入口
   // 打包出口
   output: [
-    // iife
+    // umd
     {
-      file: "dist/index.js",
-      format: "iife",
+      file: "dist/index.umd.js",
+      format: "umd",
       name: "YStorage",
       plugins:[terser({
         compress: false

@@ -1,6 +1,15 @@
 ## [0.0.4](https://github.com/yun8711/y-storage/compare/0.0.2...0.0.4) (2023-04-20)
 
 
+### 🐛 Bug Fixes | Bug 修复
+
+* 修复命名空间取值错误 ([c5b9f1b](https://github.com/yun8711/y-storage/commit/c5b9f1b))
+
+
+
+## [0.0.4](https://github.com/yun8711/y-storage/compare/0.0.2...0.0.4) (2023-04-20)
+
+
 
 ## [0.0.2](https://github.com/yun8711/y-storage/compare/0.0.1...0.0.2) (2023-04-18)
 

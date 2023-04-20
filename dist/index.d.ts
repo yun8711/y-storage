@@ -21,7 +21,7 @@ interface constructorOptions {
     target?: TargetType;
     callback?: ((detail: callbackArg) => void) | undefined;
 }
-declare class YStorage {
+export declare class YStorage {
     readonly prefix: string;
     readonly namespace: string;
     readonly target: TargetType;
@@ -36,4 +36,4 @@ declare class YStorage {
     getItem(key: string): unknown;
     clear(): void;
 }
-export default YStorage;
+export {};
