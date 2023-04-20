@@ -56,7 +56,7 @@ interface constructorOptions {
  * @class YStorage
  * @description 声明一个类，用于存储数据，同时提供事件监听
  */
-class YStorage {
+export class YStorage {
   readonly prefix: string = "YStorage_";
   readonly namespace: string;
   readonly target: TargetType;
@@ -82,8 +82,8 @@ class YStorage {
    */
   private _initSpace(options: constructorOptions): void {
     try {
-      if (!this.storage.getItem(options.namespace) || options.override === true) {
-        this.storage.setItem(options.namespace, JSON.stringify({}));
+      if (!this.storage.getItem(this.namespace) || options.override === true) {
+        this.storage.setItem(this.namespace, JSON.stringify({}));
       }
       this.callback &&
         this.callback({
@@ -244,5 +244,3 @@ class YStorage {
     }
   }
 }
-
-export default YStorage;
